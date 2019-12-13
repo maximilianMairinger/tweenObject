@@ -14,7 +14,8 @@
     "url": "git+https://github.com/maximilianMairinger/tweenObject.git"
   },
   "keywords": [
-    " [\"tween\",\"object\"] "
+    "tween",
+    "object"
   ],
   "author": "Maximilian Mairinger",
   "license": "ISC",
