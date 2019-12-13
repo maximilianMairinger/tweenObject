@@ -24,10 +24,16 @@
   },
   "homepage": "https://github.com/maximilianMairinger/tweenObject#readme",
   "devDependencies": {
+    "@types/clone": "^0.1.30",
     "@types/node": "^12.6.9",
     "@types/tween.js": "^17.2.0",
+    "abs-svg-path": "^0.1.1",
+    "animation-frame-delta": "^2.1.5",
+    "bezier-easing": "^2.1.0",
     "css-loader": "^2.1.0",
     "cssnano": "^4.1.8",
+    "normalize-svg-path": "^1.0.1",
+    "parse-svg-path": "^0.1.2",
     "postcss-loader": "^3.0.0",
     "terser-webpack-plugin": "^1.2.2",
     "to-string-loader": "^1.1.6",
@@ -38,5 +44,9 @@
     "webpack-cli": "^3.3.10",
     "webpack-inject-plugin": "^1.5.2",
     "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {
+    "clone": "^2.1.2",
+    "xrray": "^4.0.4"
   }
 }
