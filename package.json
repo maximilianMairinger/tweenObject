@@ -28,7 +28,7 @@
     "@types/node": "^12.6.9",
     "@types/tween.js": "^17.2.0",
     "abs-svg-path": "^0.1.1",
-    "animation-frame-delta": "^2.1.5",
+    "animation-frame-delta": "^2.2.1",
     "bezier-easing": "^2.1.0",
     "css-loader": "^2.1.0",
     "cssnano": "^4.1.8",

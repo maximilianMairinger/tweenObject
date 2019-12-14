@@ -20,9 +20,9 @@ interpolater.onUpdate((e) => {
 })
 
 
-animationFrameDelta(() => {
-  //todo
-})
+animationFrameDelta((runningFor) => {
+  interpolater.update(runningFor)
+}, 1000)
 
 
 
