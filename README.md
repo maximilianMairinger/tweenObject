@@ -25,4 +25,4 @@ console.log(tween.update(.5))
 
 ## Conribute
 
-All feedback is appreciated. Create an push request or wirte an issue.
+All feedback is appreciated. Create an pull request or wirte an issue.
