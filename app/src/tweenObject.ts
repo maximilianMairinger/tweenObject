@@ -3,18 +3,18 @@ import clone from "clone"
 require("xrray")(Array)
 
 
-export class InterpolateError extends Error {
+export class TweenError extends Error {
   constructor(msg: string = "Unknown") {
     super()
     this.message = msg
   }
   public set message(to: string) {
-    super.message = "InterpolateError: " + to
+    super.message = "TweenError: " + to
   }
 }
 
 
-export class InterpolationCheckError extends InterpolateError {
+export class TweenCheckError extends TweenError {
   private steps: string[] = []
   constructor(private msg: string = "Unknown") {
     super()
@@ -48,7 +48,7 @@ export class SimpleTween {
 type GenericObject = {[prop: string]: any}
 
 
-export abstract class Interpolater<Face, Interior extends any = GenericObject, Input = Face, Output = Face> {
+export abstract class Tween<Face, Interior extends any = GenericObject, Input = Face, Output = Face> {
   private _from: Interior;
   private _to: Interior;
   private tweeny: Interior;
@@ -162,16 +162,16 @@ export abstract class Interpolater<Face, Interior extends any = GenericObject, I
   private checkInput(from: any, to: any) {
     let typeofFrom = typeof from
     let typeofTo = typeof to
-    if (typeofFrom !== typeofTo) throw new InterpolationCheckError("Typeof from and typeof to are not equal.")
+    if (typeofFrom !== typeofTo) throw new TweenCheckError("Typeof from and typeof to are not equal.")
     if (typeofFrom === "object") {
       let fromKeys = Object.keys(from)
-      if (fromKeys.length !== Object.keys(to).length) throw new InterpolationCheckError("Length of keys are not equal.")
+      if (fromKeys.length !== Object.keys(to).length) throw new TweenCheckError("Length of keys are not equal.")
       for (let key of fromKeys) {
         try {
           this.checkInput(from[key], to[key])
         }
         catch(e) {
-          if (e instanceof InterpolationCheckError) {
+          if (e instanceof TweenCheckError) {
             e.addStep(key)
           }
 
@@ -180,12 +180,12 @@ export abstract class Interpolater<Face, Interior extends any = GenericObject, I
       }
     }
     else if (typeofFrom !== "number") {
-      if (from !== to) throw new InterpolationCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given from and to.")
+      if (from !== to) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given from and to.")
     }
   }
 }
 
-export default class InterpolateObject extends Interpolater<any, any> {
+export default class TweenObject extends Tween<any, any> {
 
   protected parseOut(interior: any): any {
     return interior  

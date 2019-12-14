@@ -1,4 +1,4 @@
-import InterpolateObject, { Interpolater } from "../../app/src/tweenObject"
+import TweenObject, { Tween } from "../../app/src/tweenObject"
 import bez from "bezier-easing"
 import animationFrameDelta from "animation-frame-delta"
 
@@ -7,7 +7,7 @@ let easeInOut = bez(.42, 0, .58, 1)
 
 
 
-let interpolater = new InterpolateObject(0, 10, 1000, easeInOut)
+let interpolater = new TweenObject(0, 10, 1000, easeInOut)
 
 
 console.log(interpolater.update(.3));
@@ -33,7 +33,7 @@ const parse = require('parse-svg-path');
 const abs = require('abs-svg-path');
 const normalize = require('normalize-svg-path');
 
-class SvgPathInterpolator extends Interpolater<string, Segments> {
+class SvgPathInterpolator extends Tween<string, Segments> {
   protected parseIn(face: string): Segments {
     return normalize(abs(parse(face)))
   }
