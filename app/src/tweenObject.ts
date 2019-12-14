@@ -48,7 +48,7 @@ export class SimpleTween {
 type GenericObject = {[prop: string]: any}
 
 
-export abstract class Interpolater<Face, Interior extends any = GenericObject, Input = Interior, Output = Interior> {
+export abstract class Interpolater<Face, Interior extends any = GenericObject, Input = Face, Output = Face> {
   private _from: Interior;
   private _to: Interior;
   private tweeny: Interior;
