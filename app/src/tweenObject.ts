@@ -48,16 +48,16 @@ export class SimpleTween {
 type GenericObject = {[prop: string]: any}
 
 
-export abstract class Interpolater<Face, Interior extends any = GenericObject> {
+export abstract class Interpolater<Face, Interior extends any = GenericObject, Input = Interior, Output = Interior> {
   private _from: Interior;
   private _to: Interior;
   private tweeny: Interior;
   private tweenInstances: SimpleTween[] = []
 
-  private updateListeners: ((res: Readonly<Face>) => void)[] = []
+  private updateListeners: ((res: Readonly<Output>) => void)[] = []
 
   private startTime: number
-  constructor(from: Face, to: Face, public duration: number = 1, public easing: (at: number) => number = a => a) {
+  constructor(from: Input, to: Input, public duration: number = 1, public easing: (at: number) => number = a => a) {
     this._from = this.parseIn(from)
     this._to = this.parseIn(to)
     this.prepInput()
@@ -84,10 +84,10 @@ export abstract class Interpolater<Face, Interior extends any = GenericObject> {
     })
   }
 
-  protected abstract parseOut(interior: Interior): Face
-  protected abstract parseIn(face: Face): Interior
+  protected abstract parseIn(face: Input): Interior
+  protected abstract parseOut(interior: Interior): Output
 
-  public update(at?: number): Readonly<Face> {
+  public update(at?: number): Readonly<Output> {
     this.updateWithoutNotification(at)
     let res = this.parseOut(this.tweeny)
     this.updateListeners.ea((f) => {
@@ -98,30 +98,35 @@ export abstract class Interpolater<Face, Interior extends any = GenericObject> {
 
   
 
-  public onUpdate(ls: (res: Readonly<Face>) => void) {
+  public onUpdate(ls: (res: Readonly<Output>) => void) {
     this.updateListeners.add(ls)
     return ls
   }
 
-  public offUpdate(ls: (res: Readonly<Face>) => void) {
+  public offUpdate(ls: (res: Readonly<Output>) => void) {
     this.updateListeners.rmV(ls)
   }
 
+  public from(): Output
+  public from(to: Input): void
+  public from(to?: Input) {
+    if (to) {
+      this._from = this.parseIn(to)
+      this.prepInput()
+    }
+    else return this.parseOut(this._from)
+  }
 
-  public set from(to: Face) {
-    this._from = this.parseIn(to)
-    this.prepInput()
-  }
-  public get from(): Face {
-    return this.parseOut(this._from)
-  }
 
-  public set to(to: Face) {
-    this._to = this.parseIn(to)
-    this.prepInput()
-  }
-  public get to(): Face {
-    return this.parseOut(this._to)
+  public to(): Output
+  public to(to: Input): void
+  public to(to?: Input) {
+    if (to) {
+      this._to = this.parseIn(to)
+      this.prepInput()
+    }
+    else return this.parseOut(this._to)
+    
   }
 
   private prepInput() {
