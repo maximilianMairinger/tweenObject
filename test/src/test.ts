@@ -20,9 +20,7 @@ interpolater.onUpdate((e) => {
 })
 
 
-animationFrameDelta((runningFor) => {
-  interpolater.update(runningFor)
-}, 1000)
+animationFrameDelta(interpolater.update.bind(interpolater), 1000)
 
 
 
@@ -41,10 +39,8 @@ class SvgPathInterpolator extends Interpolater<string, Segments> {
   }
 
   protected parseOut(interior: Segments) {
-    let i = 0
     let s = ""
-    let length = interior.length
-    for (; i < length; i++) {
+    for (let i = 0; i < interior.length; i++) {
       s += interior[i].join(" ") + " "
     }
     s = s.substr(0, s.length-1)
