@@ -49,17 +49,27 @@ type GenericObject = {[prop: string]: any}
 
 
 export abstract class Tween<Face, Interior extends any = GenericObject, Input = Face, Output = Face> {
-  private _from: Interior;
-  private _to: Interior;
+  private keyframes: {offset: number, value: Interior}[]
   private tweeny: Interior;
   private tweenInstances: SimpleTween[] = []
 
   private updateListeners: ((res: Readonly<Output>) => void)[] = []
 
   private startTime: number
-  constructor(from: Input, to: Input, public duration: number = 1, public easing: (at: number) => number = a => a) {
-    this._from = this.parseIn(from)
-    this._to = this.parseIn(to)
+
+  constructor(from: Input, to: Input, duration: number, easing: (at: number) => number)
+  constructor(array: true, to: {offset: number, value: Interior}[], duration: number, easing: (at: number) => number)
+  constructor(from_array: Input | true, to: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
+    if (from_array === true) {
+      this.keyframes = to as {offset: number, value: Interior}[]
+    }
+    else {
+      this.keyframes = [
+        {offset: 0, value: this.parseIn(from_array)},
+        {offset: 1, value: this.parseIn(to as Input)}
+      ]
+    }
+    
     this.prepInput()
   }
 
@@ -111,10 +121,10 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
   public from(to: Input): void
   public from(to?: Input) {
     if (to) {
-      this._from = this.parseIn(to)
+      this.keyframes.first = {offset: 0, value: this.parseIn(to)}
       this.prepInput()
     }
-    else return this.parseOut(this._from)
+    else return this.parseOut(this.keyframes.first.value)
   }
 
 
@@ -122,10 +132,10 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
   public to(to: Input): void
   public to(to?: Input) {
     if (to) {
-      this._to = this.parseIn(to)
+      this.keyframes.last = {offset: 0, value: this.parseIn(to)}
       this.prepInput()
     }
-    else return this.parseOut(this._to)
+    else return this.parseOut(this.keyframes.last.value)
     
   }
 
@@ -159,16 +169,26 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
     }
   }
 
-  private checkInput(from: any, to: any) {
-    let typeofFrom = typeof from
-    let typeofTo = typeof to
-    if (typeofFrom !== typeofTo) throw new TweenCheckError("Typeof from and typeof to are not equal.")
-    if (typeofFrom === "object") {
-      let fromKeys = Object.keys(from)
-      if (fromKeys.length !== Object.keys(to).length) throw new TweenCheckError("Length of keys are not equal.")
-      for (let key of fromKeys) {
+  private checkInput(keyframes: Interior[]) {
+    let type = typeof keyframes.first
+    for (let i = 1; i < keyframes.length; i++) {
+      if (type !== typeof keyframes[i]) throw new TweenCheckError("Types are not equal at index " + i + ".")
+    }
+    if (type === "object") {
+      let keys = Object.keys(keyframes.first)
+      for (let i = 1; i < keyframes.length; i++) {
+        let me = Object.keys(keyframes[i])
+        if (keys.length !== me.length) throw new TweenCheckError("Length of keys are not equal at index " + i + ".")
+        if (!me.contains(...keys)) throw new TweenCheckError("Keys do not match at index " + i + ".")
+      }
+      
+      for (let key of keys) {
+        let inner = []
+        keys.ea((e) => {
+          inner.add(e[key])
+        })
         try {
-          this.checkInput(from[key], to[key])
+          this.checkInput(inner)
         }
         catch(e) {
           if (e instanceof TweenCheckError) {
@@ -179,8 +199,11 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
         }
       }
     }
-    else if (typeofFrom !== "number") {
-      if (from !== to) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given from and to.")
+    else if (type !== "number") {
+      let val = keyframes.first
+      for (let i = 1; i < keyframes.length; i++) {
+        if (val !== keyframes[i]) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given all given keyframes. Error eccured at index " + i + ".")
+      }
     }
   }
 }
