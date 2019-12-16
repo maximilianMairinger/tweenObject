@@ -105,4 +105,4 @@ tween.onUpdate((path) => {
 
 ## Conribute
 
-All feedback is appreciated. Create an pull request or wirte an issue.
+All feedback is appreciated. Create an pull request or write an issue.
