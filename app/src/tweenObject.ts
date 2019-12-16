@@ -43,6 +43,11 @@ export class SimpleTween {
   public update(at: number) {
     this.onUpdate(this.from + (this.to - this.from) * at)
   }
+  public deconstruct() {
+    delete this.from
+    delete this.to
+    delete this.onUpdate
+  }
 }
 
 type GenericObject = {[prop: string]: any}
@@ -135,6 +140,12 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
 
     this.tweeny = clone(this._from)
     let typeofTweeny = typeof this.tweeny
+
+    this.tweenInstances.ea((t) => {
+      t.deconstruct()
+    })
+    this.tweenInstances.clear()
+
     if (typeofTweeny === "object") this.prepTweeny(this.tweeny, this._to)
     //@ts-ignore
     else if (typeofTweeny === "number") this.tweenInstances.add(new SimpleTween(this._from, this._to, (e) => {
