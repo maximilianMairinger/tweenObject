@@ -38,13 +38,13 @@ let to = 500
 let duration = 1000
 let tween = new TweenObject(from, to, duration)
 
-animationFrameDelta(tween.update.bind(tween), duration)
-
-// or the less cool but more readable version
-
 animationFrameDelta((progress) => {
   tween.update(progress)
 }, duration)
+
+// or the more cool but less readable version
+
+animationFrameDelta(tween.update.bind(tween), duration)
 ```
 
 ### Extention
@@ -105,4 +105,4 @@ tween.onUpdate((path) => {
 
 ## Conribute
 
-All feedback is appreciated. Create an pull request or wirte an issue.
+All feedback is appreciated. Create an pull request or write an issue.
