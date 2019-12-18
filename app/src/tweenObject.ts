@@ -135,7 +135,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public from(): Output
   public from(to: Input): void
   public from(to?: Input) {
-    if (to) {
+    if (to !== undefined) {
       this._keyframes.first = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
@@ -146,7 +146,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public to(): Output
   public to(to: Input): void
   public to(to?: Input) {
-    if (to) {
+    if (to !== undefined) {
       this._keyframes.last = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
@@ -156,7 +156,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public keyframes(): Keyframes<Output>
   public keyframes(to: Keyframes<Input>): void
   public keyframes(to?: Keyframes<Input>): Keyframes<Output> | void {
-    if (to) {
+    if (to !== undefined) {
       let keyframes = clone(to)
       if (keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
       keyframes.ea((e, i) => {
