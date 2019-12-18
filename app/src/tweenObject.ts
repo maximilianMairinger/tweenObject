@@ -62,14 +62,17 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
   constructor(from_array: Input | true, to: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
     if (from_array === true) {
-      this.keyframes = to as {offset: number, value: Interior}[]
+      this.keyframes = clone(to) as {offset: number, value: Interior}[]
+      if (this.keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
     }
     else {
       this.keyframes = [
-        {offset: 0, value: this.parseIn(from_array)},
-        {offset: 1, value: this.parseIn(to as Input)}
+        {offset: 0, value: clone(this.parseIn(from_array))},
+        {offset: 1, value: clone(this.parseIn(to as Input))}
       ]
     }
+
+    
     
     this.prepInput()
   }
@@ -135,7 +138,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public from(to: Input): void
   public from(to?: Input) {
     if (to) {
-      this.keyframes.first = {offset: 0, value: this.parseIn(to)}
+      this.keyframes.first = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
     else return this.parseOut(this.keyframes.first.value)
@@ -146,7 +149,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public to(to: Input): void
   public to(to?: Input) {
     if (to) {
-      this.keyframes.last = {offset: 0, value: this.parseIn(to)}
+      this.keyframes.last = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
     else return this.parseOut(this.keyframes.last.value)
