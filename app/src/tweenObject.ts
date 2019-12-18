@@ -253,12 +253,9 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       }
       
       for (let key of keys) {
-        let inner = []
-        keys.ea((e) => {
-          inner.add(e[key])
-        })
         try {
-          this.checkInput(inner)
+          //@ts-ignore
+          this.checkInput(interiors.inner(key))
         }
         catch(e) {
           if (e instanceof TweenCheckError) {
