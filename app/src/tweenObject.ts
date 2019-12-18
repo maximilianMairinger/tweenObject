@@ -273,7 +273,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   }
 }
 
-export default class TweenObject extends Tween<any, any> {
+export default class TweenObject<Face, Interior extends (number | GenericObject) = (number | GenericObject), Input = Face, Output = Face> extends Tween<Face, Interior, Input, Output> {
 
   protected parseOut(interior: any): any {
     return interior  
