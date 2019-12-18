@@ -64,9 +64,10 @@ To interpolate over multiple keyframes set the first constructor argument to tru
 ```js
 let multipleKeyframes = true
 let keyframes = [
-  {offset: 0,  value: {test: 100}},
-  {offset: .3, value: {test: 250}},
-  {offset: 1,  value: {test: 500}},
+  {value: {test: 100}, offset: 0},
+  {value: {test: 250}, offset: .3},
+  {value: {test: 300}},
+  {value: {test: 500}, offset: 1},
 ]
 
 let tween = new TweenObject(multipleKeyframes, keyframes)
