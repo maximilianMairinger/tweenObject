@@ -62,10 +62,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   constructor(array: true, keyframes: {offset: number, value: Interior}[], duration?: number, easing?: (at: number) => number)
   constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
   constructor(from_array: Input | true, to_keyframes: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
-    if (from_array === true) {
-      this._keyframes = clone(to_keyframes) as {offset: number, value: Interior}[]
-      if (this._keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
-    }
+    if (from_array === true) this.keyframes(to_keyframes as {offset: number, value: Interior}[])
     else {
       this._keyframes = [
         {offset: 0, value: clone(this.parseIn(from_array))},
@@ -156,11 +153,28 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     else return clone(this.parseOut(this._keyframes.last.value))
   }
 
-  public keyframes(): Keyframes<Interior>
-  public keyframes(to: Keyframes<Interior>): void
-  public keyframes(to?: Keyframes<Interior>): Keyframes<Interior> | void {
-    if (to) this._keyframes = clone(to)
-    else return clone(this._keyframes)
+  public keyframes(): Keyframes<Output>
+  public keyframes(to: Keyframes<Input>): void
+  public keyframes(to?: Keyframes<Input>): Keyframes<Output> | void {
+    if (to) {
+      let keyframes = clone(to)
+      if (keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
+      keyframes.ea((e, i) => {
+        //@ts-ignore
+        keyframes[i] = {offset: e.offset, value: this.parseIn(e.value)}
+      })
+      //@ts-ignore
+      this._keyframes = keyframes
+    }
+    else {
+      let keyframes = clone(this._keyframes)
+      keyframes.ea((e, i) => {
+        //@ts-ignore
+        keyframes[i] = {offset: e.offset, value: this.parseOut(e.value)}
+      })
+      //@ts-ignore
+      return keyframes
+    }
   }
 
   private prepInput() {
