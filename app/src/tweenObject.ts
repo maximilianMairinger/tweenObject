@@ -68,11 +68,8 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
         {offset: 0, value: clone(this.parseIn(from_array))},
         {offset: 1, value: clone(this.parseIn(to_keyframes as Input))}
       ]
+      this.prepInput()
     }
-
-    
-    
-    this.prepInput()
   }
 
   protected abstract parseIn(face: Input): Interior
@@ -165,6 +162,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       })
       //@ts-ignore
       this._keyframes = keyframes
+      this.prepInput()
     }
     else {
       let keyframes = clone(this._keyframes)
