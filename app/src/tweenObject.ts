@@ -59,10 +59,10 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
 
   private startTime: number
 
-  constructor(array: true, keyframes: {offset: number, value: Interior}[], duration?: number, easing?: (at: number) => number)
+  constructor(array: true, keyframes: {offset: number, value: Input}[], duration?: number, easing?: (at: number) => number)
   constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
-  constructor(from_array: Input | true, to_keyframes: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
-    if (from_array === true) this.keyframes(to_keyframes as {offset: number, value: Interior}[])
+  constructor(from_array: Input | true, to_keyframes: Input | {offset: number, value: Input}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
+    if (from_array === true) this.keyframes(to_keyframes as {offset: number, value: Input}[])
     else {
       this._keyframes = [
         {offset: 0, value: clone(this.parseIn(from_array))},
