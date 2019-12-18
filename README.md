@@ -6,7 +6,7 @@ Tween any object deeply while disregarding non numeric values
 
 ### Basic Usage
 
-Give any equivilant primitive (same type) or object (same structure) as from an to parameter. Objects will be recursively parsed and each number will be interpolated. Any non numeric values will be ignored. 
+Give any equivilant primitive (same type) or object (same structure) as from an to parameter. Objects will be recursively parsed and every found number will be interpolated. Any non numeric values will be ignored. 
 
 ```js
 import TweenObject from "tween-object"
@@ -20,15 +20,25 @@ let easing = x => x
 let tween = new TweenObject(from, to, duration, easing)
 ```
 
-The parameters from and to are necessary, duration and easing are optional, while having defaults as shown above. 
+Easing must be given as a function recieving a number between `0` and `1` and returning one between `0` and `1`. To generate such functions from bezier easing declarations programatically, have a look at [bezier-easing](https://www.npmjs.com/package/bezier-easing).
+
+-----------------
+
+You can control a tween instance via `update(at?: number)`. `at` spans from 0 to `duration`, thus in this case 0 .. 1. Parameters exceeding this limit will be kept at the maximum. 
+
+When omiting the `at` parameter, the time delta from the inital update will be taken to calculate the progress.
+
+Results can be recieved directly as returned property on the update call, or via a registered `onUpdate` listener. The unregister call `offUpdate(func)`.
 
 ```js
 tween.onUpdate((val) => {
   console.log(val)
 })
 
-console.log(tween.update(.5)) 
+console.log(tween.update(.5))
 ```
+
+-----------------
 
 To use Tween object as an animation interpolator use [animation-frame-delta](https://www.npmjs.com/package/animation-frame-delta) as animation loop handler, as it has been extensively tested to work well in combination.
 
@@ -46,6 +56,25 @@ animationFrameDelta((progress) => {
 
 animationFrameDelta(tween.update.bind(tween), duration)
 ```
+
+### Multiple Keyframes
+
+To interpolate over multiple keyframes set the first constructor argument to true and give a list of keyframes as second.
+
+```js
+let multipleKeyframes = true
+let keyframes = [
+  {offset: 0,  value: {test: 100}},
+  {offset: .3, value: {test: 250}},
+  {offset: 1,  value: {test: 500}},
+]
+
+let tween = new TweenObject(multipleKeyframes, keyframes)
+```
+
+The keyframes **must** be given in such a fashion: `{value: Input, offset?: number}` where offsets spans between 0 and 1 (in ascending order). The offset property can be ommited resulting in `{value: Input}`. This way the missing offsets get distrubuted programatically.
+
+Disregarding if an offset is explicitly given, the value must be wrapped inside an object to clearly distinguish between the offset declaration and to be interpolated values. 
 
 ### Extention
 
