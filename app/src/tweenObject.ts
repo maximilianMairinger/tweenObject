@@ -141,7 +141,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       this._keyframes.first = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
-    else return this.parseOut(this._keyframes.first.value)
+    else return clone(this.parseOut(this._keyframes.first.value))
   }
 
 
@@ -152,7 +152,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       this._keyframes.last = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
-    else return this.parseOut(this._keyframes.last.value)
+    else return clone(this.parseOut(this._keyframes.last.value))
     
   }
 
