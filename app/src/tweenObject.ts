@@ -43,27 +43,23 @@ export class SimpleTween {
   public update(at: number) {
     this.onUpdate(this.from + (this.to - this.from) * at)
   }
-  public deconstruct() {
-    delete this.from
-    delete this.to
-    delete this.onUpdate
-  }
 }
 
 type GenericObject = {[prop: string]: any}
-
+type Keyframes<Interior> = {offset: number, value: Interior}[]
+type offset = number
 
 export abstract class Tween<Face, Interior extends any = GenericObject, Input = Face, Output = Face> {
-  private keyframes: {offset: number, value: Interior}[]
+  private keyframes: Keyframes<Interior>
   private tweeny: Interior;
-  private tweenInstances: SimpleTween[] = []
+  private tweenInstancesIndex: Map<offset, SimpleTween[]>
 
   private updateListeners: ((res: Readonly<Output>) => void)[] = []
 
   private startTime: number
 
-  constructor(from: Input, to: Input, duration: number, easing: (at: number) => number)
-  constructor(array: true, to: {offset: number, value: Interior}[], duration: number, easing: (at: number) => number)
+  constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
+  constructor(array: true, to: {offset: number, value: Interior}[], duration?: number, easing?: (at: number) => number)
   constructor(from_array: Input | true, to: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
     if (from_array === true) {
       this.keyframes = to as {offset: number, value: Interior}[]
@@ -78,7 +74,10 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
     this.prepInput()
   }
 
-  protected updateWithoutNotification(at?: number) {
+  protected abstract parseIn(face: Input): Interior
+  protected abstract parseOut(interior: Interior): Output
+
+  public update(at?: number): Readonly<Output> {
     if (at === undefined) {
       if (this.startTime === undefined) {
         at = 0
@@ -94,16 +93,26 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
     at = at / this.duration
     at = this.easing(at)
 
-    this.tweenInstances.ea((tween) => {
-      tween.update(at)
-    })
-  }
 
-  protected abstract parseIn(face: Input): Interior
-  protected abstract parseOut(interior: Interior): Output
+    
+    let offsets = [...this.tweenInstancesIndex.keys()]
+    
+    for (let i = 0; i < offsets.length - 1; i++) {
+      let nextOffset = offsets[i+1]
+      let lastOffset = offsets[i]
 
-  public update(at?: number): Readonly<Output> {
-    this.updateWithoutNotification(at)
+      if (lastOffset < at && nextOffset >= at) {
+        at = (at - lastOffset) / (nextOffset - lastOffset)
+        
+        this.tweenInstancesIndex.get(lastOffset).ea((tween) => {
+          tween.update(at)
+        })
+        break
+      }
+    }
+
+    // Notify
+
     let res = this.parseOut(this.tweeny)
     this.updateListeners.ea((f) => {
       f(res)
@@ -145,50 +154,74 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
   }
 
   private prepInput() {
-    this.checkInput(this._from, this._to)
-
-
-    this.tweeny = clone(this._from)
+    let interiors = this.keyframes.Inner("value")
+    this.checkInput(interiors)
+    this.tweeny = clone(interiors.first)
     let typeofTweeny = typeof this.tweeny
 
-    this.tweenInstances.ea((t) => {
-      t.deconstruct()
-    })
-    this.tweenInstances.clear()
+    this.tweenInstancesIndex = new Map()
 
-    if (typeofTweeny === "object") this.prepTweeny(this.tweeny, this._to)
+    if (typeofTweeny === "object") this.prepTweeny(this.tweeny, this.keyframes)
     //@ts-ignore
-    else if (typeofTweeny === "number") this.tweenInstances.add(new SimpleTween(this._from, this._to, (e) => {
-      this.tweeny = e
-    }))
-  }
-
-  private prepTweeny(tweeny: any, _to: any) {
-    let typeofFrom: any
-    for (const key in tweeny) {
-      let from = tweeny[key]
-      let to = _to[key]
-      typeofFrom = typeof from
-      if (typeofFrom === "number") {
-        this.tweenInstances.add(new SimpleTween(from, to, (e) => {
-          tweeny[key] = e
-        }))
-      }
-      else if (typeofFrom === "object") {
-        this.prepTweeny(from, to)
+    else if (typeofTweeny === "number") {
+      for (let i = 0; i < this.keyframes.length - 1; i++) {
+        this.tweenInstancesIndex.set(this.keyframes[i].offset, [new SimpleTween(this.keyframes[i].value as unknown as number, this.keyframes[i+1].value as unknown as number, (e) => {
+          (this.tweeny as unknown as number) = e
+        })])
       }
     }
+
+    this.tweenInstancesIndex.set(1, null)
   }
 
-  private checkInput(keyframes: Interior[]) {
-    let type = typeof keyframes.first
-    for (let i = 1; i < keyframes.length; i++) {
-      if (type !== typeof keyframes[i]) throw new TweenCheckError("Types are not equal at index " + i + ".")
+  private prepTweeny(tweeny: any, keyframes: Keyframes<Interior>) {
+    let typeofFrom: any
+    let typeofFromIsNumber
+    let typeofFromIsObject
+    for (const key in tweeny) {
+      typeofFrom = typeof keyframes.first.value[key]
+      typeofFromIsNumber = typeofFrom === "number"
+      typeofFromIsObject = typeofFrom === "object"
+
+      for (let i = 0; i < keyframes.length - 1; i++) {
+        let offset = keyframes[i].offset
+        let from = keyframes[i].value[key]
+        let to = keyframes[i + 1].value[key]
+  
+
+        if (typeofFromIsNumber) {
+          let tweenInstances = this.tweenInstancesIndex.get(offset)
+          if (tweenInstances === undefined) {
+            let ar = []
+            this.tweenInstancesIndex.set(offset, ar)
+            tweenInstances = ar
+          }
+          tweenInstances.add(new SimpleTween(from, to, (e) => {
+            tweeny[key] = e
+          }))
+        }
+      }
+
+      if (typeofFromIsObject) {
+        let newKeyframe: Keyframes<Interior> = []
+        for (let i = 0; i < keyframes.length; i++) {
+          newKeyframe[i] = {value: keyframes[i].value[key], offset: keyframes[i].offset}
+        }
+        this.prepTweeny(tweeny[key], newKeyframe)
+      }
+    }
+    return tweeny
+  }
+
+  private checkInput(interiors: Interior[]) {
+    let type = typeof interiors.first
+    for (let i = 1; i < interiors.length; i++) {
+      if (type !== typeof interiors[i]) throw new TweenCheckError("Types are not equal at index " + i + ".")
     }
     if (type === "object") {
-      let keys = Object.keys(keyframes.first)
-      for (let i = 1; i < keyframes.length; i++) {
-        let me = Object.keys(keyframes[i])
+      let keys = Object.keys(interiors.first)
+      for (let i = 1; i < interiors.length; i++) {
+        let me = Object.keys(interiors[i])
         if (keys.length !== me.length) throw new TweenCheckError("Length of keys are not equal at index " + i + ".")
         if (!me.contains(...keys)) throw new TweenCheckError("Keys do not match at index " + i + ".")
       }
@@ -211,9 +244,9 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
       }
     }
     else if (type !== "number") {
-      let val = keyframes.first
-      for (let i = 1; i < keyframes.length; i++) {
-        if (val !== keyframes[i]) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given all given keyframes. Error eccured at index " + i + ".")
+      let val = interiors.first
+      for (let i = 1; i < interiors.length; i++) {
+        if (val !== interiors[i]) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given all given keyframes. Error eccured at index " + i + ".")
       }
     }
   }
