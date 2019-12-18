@@ -1,5 +1,6 @@
 const now = performance.now.bind(performance)
 import clone from "clone"
+import spreadOffset from "spread-offset"
 require("xrray")(Array)
 
 
@@ -163,6 +164,8 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   }
 
   private prepInput() {
+    spreadOffset(this._keyframes)
+
     let interiors = this._keyframes.Inner("value")
     this.checkInput(interiors)
     this.tweeny = clone(interiors.first)
@@ -185,8 +188,8 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
 
   private prepTweeny(tweeny: any, keyframes: Keyframes<Interior>) {
     let typeofFrom: any
-    let typeofFromIsNumber
-    let typeofFromIsObject
+    let typeofFromIsNumber: boolean
+    let typeofFromIsObject: boolean
     for (const key in tweeny) {
       typeofFrom = typeof keyframes.first.value[key]
       typeofFromIsNumber = typeofFrom === "number"

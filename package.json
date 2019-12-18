@@ -47,6 +47,7 @@
   },
   "dependencies": {
     "clone": "^2.1.2",
+    "spread-offset": "^1.0.0",
     "xrray": "^4.2.1"
   }
 }

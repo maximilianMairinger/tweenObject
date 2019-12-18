@@ -8,9 +8,9 @@ let easeInOut = bez(.42, 0, .58, 1)
 
 
 let interpolater = new TweenObject(true, [
-  {offset: 0, value: 0},
-  {offset: .5, value: 100},
-  {offset: 1, value: 300}
+  {value: 0},
+  {value: 100},
+  {value: 300}
 ], 100, easeInOut)
 
 
