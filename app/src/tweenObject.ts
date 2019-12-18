@@ -50,7 +50,7 @@ type Keyframes<Interior> = {offset: number, value: Interior}[]
 type offset = number
 
 export abstract class Tween<Face, Interior extends (number | GenericObject) = GenericObject, Input = Face, Output = Face> {
-  private keyframes: Keyframes<Interior>
+  private _keyframes: Keyframes<Interior>
   private tweeny: Interior;
   private tweenInstancesIndex: Map<offset, SimpleTween[]>
 
@@ -58,17 +58,17 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
 
   private startTime: number
 
-  constructor(array: true, to: {offset: number, value: Interior}[], duration?: number, easing?: (at: number) => number)
+  constructor(array: true, keyframes: {offset: number, value: Interior}[], duration?: number, easing?: (at: number) => number)
   constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
-  constructor(from_array: Input | true, to: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
+  constructor(from_array: Input | true, to_keyframes: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
     if (from_array === true) {
-      this.keyframes = clone(to) as {offset: number, value: Interior}[]
-      if (this.keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
+      this._keyframes = clone(to_keyframes) as {offset: number, value: Interior}[]
+      if (this._keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
     }
     else {
-      this.keyframes = [
+      this._keyframes = [
         {offset: 0, value: clone(this.parseIn(from_array))},
-        {offset: 1, value: clone(this.parseIn(to as Input))}
+        {offset: 1, value: clone(this.parseIn(to_keyframes as Input))}
       ]
     }
 
@@ -138,10 +138,10 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public from(to: Input): void
   public from(to?: Input) {
     if (to) {
-      this.keyframes.first = {offset: 0, value: clone(this.parseIn(to))}
+      this._keyframes.first = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
-    else return this.parseOut(this.keyframes.first.value)
+    else return this.parseOut(this._keyframes.first.value)
   }
 
 
@@ -149,26 +149,26 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public to(to: Input): void
   public to(to?: Input) {
     if (to) {
-      this.keyframes.last = {offset: 0, value: clone(this.parseIn(to))}
+      this._keyframes.last = {offset: 0, value: clone(this.parseIn(to))}
       this.prepInput()
     }
-    else return this.parseOut(this.keyframes.last.value)
+    else return this.parseOut(this._keyframes.last.value)
     
   }
 
   private prepInput() {
-    let interiors = this.keyframes.Inner("value")
+    let interiors = this._keyframes.Inner("value")
     this.checkInput(interiors)
     this.tweeny = clone(interiors.first)
     let typeofTweeny = typeof this.tweeny
 
     this.tweenInstancesIndex = new Map()
 
-    if (typeofTweeny === "object") this.prepTweeny(this.tweeny, this.keyframes)
+    if (typeofTweeny === "object") this.prepTweeny(this.tweeny, this._keyframes)
     //@ts-ignore
     else if (typeofTweeny === "number") {
-      for (let i = 0; i < this.keyframes.length - 1; i++) {
-        this.tweenInstancesIndex.set(this.keyframes[i].offset, [new SimpleTween(this.keyframes[i].value as unknown as number, this.keyframes[i+1].value as unknown as number, (e) => {
+      for (let i = 0; i < this._keyframes.length - 1; i++) {
+        this.tweenInstancesIndex.set(this._keyframes[i].offset, [new SimpleTween(this._keyframes[i].value as unknown as number, this._keyframes[i+1].value as unknown as number, (e) => {
           (this.tweeny as unknown as number) = e
         })])
       }
