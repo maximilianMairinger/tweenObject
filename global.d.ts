@@ -250,16 +250,12 @@ declare namespace Xrray {
 		/*
 		 * Steps into step of all entries
 		 */
-		inner<Key extends keyof T, Val = T[Key]>(step: UnionToIntersection<Key>): Val
+		inner<Key extends keyof T, Val = T[Key]>(step: Key): Val[]
 		/*
 		 * Steps into step of all entries
 		 */
-		Inner<Key extends keyof T, Val = T[Key]>(step: UnionToIntersection<Key>): Val
+		Inner<Key extends keyof T, Val = T[Key]>(step: Key): Val[]
 	}
-
-	//https://stackoverflow.com/a/50375286/10226440
-	type UnionToIntersection<U> = 
-  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 }
 
 

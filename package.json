@@ -47,6 +47,6 @@
   },
   "dependencies": {
     "clone": "^2.1.2",
-    "xrray": "^4.2.0"
+    "xrray": "^4.2.1"
   }
 }
