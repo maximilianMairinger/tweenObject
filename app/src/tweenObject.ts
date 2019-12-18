@@ -153,7 +153,13 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       this.prepInput()
     }
     else return clone(this.parseOut(this._keyframes.last.value))
-    
+  }
+
+  public keyframes(): Keyframes<Interior>
+  public keyframes(to: Keyframes<Interior>): void
+  public keyframes(to?: Keyframes<Interior>): Keyframes<Interior> | void {
+    if (to) this._keyframes = clone(to)
+    else return clone(this._keyframes)
   }
 
   private prepInput() {
