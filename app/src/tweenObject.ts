@@ -49,7 +49,7 @@ type GenericObject = {[prop: string]: any}
 type Keyframes<Interior> = {offset: number, value: Interior}[]
 type offset = number
 
-export abstract class Tween<Face, Interior extends any = GenericObject, Input = Face, Output = Face> {
+export abstract class Tween<Face, Interior extends (number | GenericObject) = GenericObject, Input = Face, Output = Face> {
   private keyframes: Keyframes<Interior>
   private tweeny: Interior;
   private tweenInstancesIndex: Map<offset, SimpleTween[]>
@@ -58,8 +58,8 @@ export abstract class Tween<Face, Interior extends any = GenericObject, Input = 
 
   private startTime: number
 
-  constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
   constructor(array: true, to: {offset: number, value: Interior}[], duration?: number, easing?: (at: number) => number)
+  constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
   constructor(from_array: Input | true, to: Input | {offset: number, value: Interior}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
     if (from_array === true) {
       this.keyframes = to as {offset: number, value: Interior}[]
