@@ -75,6 +75,20 @@ let tween = new TweenObject(from, to, options)
 
 The values displayed above are the defaults, you may omit any of the properties to fall back to these values. 
 
+-----------------
+
+The used config can be read like so
+
+> Note that this is a readonly object. You are unable to change an instantiated tween.
+
+```js
+let usedOptions = tween.options
+
+console.log("This tween has " + usedOptions.iterations + " iterations.")
+```
+
+These are the given options merged with the default config. This is potentually interesting if youd like to rely on the built in option resolution of tween object as it supports `duration` & `easing` as standalone properties.
+
 ### Multiple Keyframes
 
 To interpolate over multiple keyframes set the first constructor argument to true and give a list of keyframes as second.
