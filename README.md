@@ -57,6 +57,24 @@ animationFrameDelta((progress) => {
 animationFrameDelta(tween.update.bind(tween), duration)
 ```
 
+### Advanced Options
+
+Instead of the shortcuts duration and easing, a object containing more advanced options can be given. 
+
+```js
+let opions = {
+  start: 0,
+  end: 1,
+  easing: a => a, 
+  iterations: 1,
+  fill: true
+}
+
+let tween = new TweenObject(from, to, options)
+```
+
+The values displayed above are the defaults, you may omit any of the properties to fall back to these values. 
+
 ### Multiple Keyframes
 
 To interpolate over multiple keyframes set the first constructor argument to true and give a list of keyframes as second.
