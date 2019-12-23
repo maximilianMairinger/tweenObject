@@ -1,7 +1,11 @@
 const now = performance.now.bind(performance)
 import clone from "clone"
 import spreadOffset from "spread-offset"
+import { Data } from "front-db"
+import { deepEqual } from "fast-equals"
 require("xrray")(Array)
+
+
 
 
 export class TweenError extends Error {
@@ -36,7 +40,6 @@ export class TweenCheckError extends TweenError {
 
 
 
-
 export class SimpleTween {
   constructor(public from: number, public to: number, public onUpdate: (res: number) => void) {
     
@@ -46,8 +49,33 @@ export class SimpleTween {
   }
 }
 
+interface Options {
+  readonly start?: number
+  readonly end?: number
+  readonly easing?: (at: number) => number
+  readonly iterations?: number
+  readonly fill?: boolean
+}
+
+const defaultOptions: Options = {
+  start: 0,
+  end: 1000,
+  easing: a => a,
+  iterations: 1,
+  fill: true
+}
+
+
+function mergeDefaultOptions(options: Options) {
+  for (let key in defaultOptions) {
+    if (options[key] === undefined) options[key] = defaultOptions[key]
+  }
+  return options
+}
+
+
 type GenericObject = {[prop: string]: any}
-type Keyframes<Interior> = {offset: number, value: Interior}[]
+type Keyframes<Interior> = {offset?: number, value: Interior}[]
 type offset = number
 
 export abstract class Tween<Face, Interior extends (number | GenericObject) = GenericObject, Input = Face, Output = Face> {
@@ -58,11 +86,35 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   private updateListeners: ((res: Readonly<Output>) => void)[] = []
 
   private startTime: number
+  private tweenInstancesIndexKeys: number[]
+  private lastUpdateAt: number = null
 
-  constructor(array: true, keyframes: {offset: number, value: Input}[], duration?: number, easing?: (at: number) => number)
+  private options: Options
+
+  private duration: number
+
+
+  constructor(array: true, keyframes: Keyframes<Input>, duration?: number, easing?: (at: number) => number)
+  constructor(array: true, keyframes: Keyframes<Input>, options: Options)
+  constructor(from: Input, to: Input, options: Options)
   constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
-  constructor(from_array: Input | true, to_keyframes: Input | {offset: number, value: Input}[], public duration: number = 1, public easing: (at: number) => number = a => a) {
-    if (from_array === true) this.keyframes(to_keyframes as {offset: number, value: Input}[])
+  constructor(from_array: Input | true, to_keyframes: Input | Keyframes<Input>, duration_options?: number | Options, easing?: (at: number) => number) {
+    if (typeof duration_options === "object") {
+      this.options = mergeDefaultOptions(duration_options)
+    }
+    else if (duration_options !== undefined) {
+      this.options = mergeDefaultOptions({
+        end: duration_options,
+        easing,
+      })
+    }
+    else {
+      this.options = mergeDefaultOptions({})
+    }
+
+    this.duration = this.options.end - this.options.start
+
+    if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)
     else {
       this._keyframes = [
         {offset: 0, value: clone(this.parseIn(from_array))},
@@ -75,6 +127,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   protected abstract parseIn(face: Input): Interior
   protected abstract parseOut(interior: Interior): Output
 
+  private lastParsedOutput: Output
   public update(at?: number): Readonly<Output> {
     if (at === undefined) {
       if (this.startTime === undefined) {
@@ -86,36 +139,54 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       }
     }
 
-    if (at > this.duration) at = this.duration
+    at = at - this.options.start
+
+    
+
+    if (at > this.duration) {
+      let progress = at / this.duration
+      if (progress > this.options.iterations) {
+        if (this.options.fill) at = this.duration
+        else at = 0
+      }
+      else at = at - (Math.floor(progress) * this.duration)
+    }
     else if (at < 0) at = 0
+
+
     at = at / this.duration
-    at = this.easing(at)
+    at = this.options.easing(at)
 
 
+    if (this.lastUpdateAt !== at) {
+      let offsets = this.tweenInstancesIndexKeys
     
-    let offsets = [...this.tweenInstancesIndex.keys()]
-    
-    for (let i = 0; i < offsets.length - 1; i++) {
-      let nextOffset = offsets[i+1]
-      let lastOffset = offsets[i]
+      for (let i = 0; i < offsets.length - 1; i++) {
+        let nextOffset = offsets[i+1]
+        let lastOffset = offsets[i]
+  
+        if (lastOffset <= at && nextOffset >= at) {
+          at = (at - lastOffset) / (nextOffset - lastOffset)
+          
+          this.tweenInstancesIndex.get(lastOffset).ea((tween) => {
+            tween.update(at)
+          })
+          break
+        }
+      }
 
-      if (lastOffset < at && nextOffset >= at) {
-        at = (at - lastOffset) / (nextOffset - lastOffset)
-        
-        this.tweenInstancesIndex.get(lastOffset).ea((tween) => {
-          tween.update(at)
+      // Notify
+      let res = this.parseOut(this.tweeny)
+      if (!deepEqual(res, this.lastParsedOutput)) {
+        this.updateListeners.ea((f) => {
+          f(res)
         })
-        break
+        this.lastParsedOutput = res
+        this.lastUpdateAt = at
       }
     }
-
-    // Notify
-
-    let res = this.parseOut(this.tweeny)
-    this.updateListeners.ea((f) => {
-      f(res)
-    })
-    return res
+    
+    return this.lastParsedOutput
   }
 
   
@@ -196,6 +267,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     }
 
     this.tweenInstancesIndex.set(1, null)
+    this.tweenInstancesIndexKeys = [...this.tweenInstancesIndex.keys()]
   }
 
   private prepTweeny(tweeny: any, keyframes: Keyframes<Interior>) {
