@@ -1,7 +1,6 @@
 const now = performance.now.bind(performance)
 import clone from "clone"
 import spreadOffset from "spread-offset"
-import { Data } from "front-db"
 import { deepEqual } from "fast-equals"
 require("xrray")(Array)
 
