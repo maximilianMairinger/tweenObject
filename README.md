@@ -64,7 +64,7 @@ Instead of the shortcuts duration and easing, a object containing more advanced 
 ```js
 let opions = {
   start: 0,
-  end: 1000,
+  end: 1,
   easing: a => a, 
   iterations: 1,
   fill: true
