@@ -138,17 +138,20 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       }
     }
 
-    at = at - this.options.start
 
     
 
-    if (at > this.duration) {
-      let progress = at / this.duration
+    if (at > this.options.end) {
+      let progress = at / this.options.end
       if (progress > this.options.iterations) {
         if (this.options.fill) at = this.duration
         else at = 0
       }
-      else at = at - (Math.floor(progress) * this.duration)
+      else {
+        let iterationsPassed = Math.floor(progress)
+        at = at - iterationsPassed * this.options.start
+        at = at - iterationsPassed * this.duration
+      }
     }
     else if (at < 0) at = 0
 
