@@ -69,7 +69,7 @@ function mergeDefaultOptions(options: Options) {
   for (let key in defaultOptions) {
     if (options[key] === undefined) options[key] = defaultOptions[key]
   }
-  return options
+  return Object.freeze(options)
 }
 
 
