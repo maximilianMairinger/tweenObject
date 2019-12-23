@@ -58,7 +58,7 @@ export interface Options {
 
 const defaultOptions: Options = {
   start: 0,
-  end: 1000,
+  end: 1,
   easing: a => a,
   iterations: 1,
   fill: true
