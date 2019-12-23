@@ -48,7 +48,7 @@ export class SimpleTween {
   }
 }
 
-interface Options {
+export interface Options {
   readonly start?: number
   readonly end?: number
   readonly easing?: (at: number) => number
