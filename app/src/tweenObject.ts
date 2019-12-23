@@ -88,7 +88,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   private tweenInstancesIndexKeys: number[]
   private lastUpdateAt: number = null
 
-  private options: Options
+  public readonly options: Options
 
   private duration: number
 
