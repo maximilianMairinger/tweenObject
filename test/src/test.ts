@@ -5,12 +5,12 @@ import animationFrameDelta from "animation-frame-delta"
 let easeInOut = bez(.42, 0, .58, 1)
 
 
-let duration = 1000
+let duration = 2000
 let iterations = 2
 
 let interpolater = new TweenObject(0, 100, {
-  start: 0,
-  end: 1000,
+  start: 1000,
+  end: duration,
   iterations,
   fill: false
 })
