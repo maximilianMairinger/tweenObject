@@ -116,8 +116,8 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)
     else {
       this._keyframes = [
-        {offset: 0, value: clone(this.parseIn(from_array))},
-        {offset: 1, value: clone(this.parseIn(to_keyframes as Input))}
+        {offset: 0, value: this.parseIn(from_array)},
+        {offset: 1, value: this.parseIn(to_keyframes as Input)}
       ]
       this.prepInput()
     }
@@ -203,10 +203,10 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public from(to: Input): void
   public from(to?: Input) {
     if (to !== undefined) {
-      this._keyframes.first = {offset: 0, value: clone(this.parseIn(to))}
+      this._keyframes.first = {offset: 0, value: this.parseIn(to)}
       this.prepInput()
     }
-    else return clone(this.parseOut(this._keyframes.first.value))
+    else return this.parseOut(this._keyframes.first.value)
   }
 
 
@@ -214,10 +214,10 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   public to(to: Input): void
   public to(to?: Input) {
     if (to !== undefined) {
-      this._keyframes.last = {offset: 0, value: clone(this.parseIn(to))}
+      this._keyframes.last = {offset: 0, value: this.parseIn(to)}
       this.prepInput()
     }
-    else return clone(this.parseOut(this._keyframes.last.value))
+    else return this.parseOut(this._keyframes.last.value)
   }
 
   public keyframes(): Keyframes<Output>
@@ -346,10 +346,10 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
 
 export default class TweenObject<Face extends (number | GenericObject) = (number | GenericObject), Interior extends (number | GenericObject) = (number | GenericObject), Input extends (number | GenericObject) = Face, Output extends (number | GenericObject) = Face> extends Tween<Face, Interior, Input, Output> {
   protected parseIn(face: Input): Interior {
-    return face as unknown as Interior
+    return clone(face) as unknown as Interior
   }
   protected parseOut(interior: Interior): Output {
-    return interior as unknown as Output
+    return clone(interior) as unknown as Output
   }
 }
 
