@@ -119,16 +119,19 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
     if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)
     else {
       this._keyframes = [
-        {offset: 0, ...this.parseInAndWrap(from_array)},
-        {offset: 1, ...this.parseInAndWrap(to_keyframes as Input)}
+        this.parseInAndWrap(from_array),
+        this.parseInAndWrap(to_keyframes as Input)
       ]
+      this._keyframes[0].offset = 0
+      this._keyframes[1].offset = 1
+      
       this.prepInput()
     }
   }
 
   private isWrapped: boolean = false
   private wrap(toBeWrapped: any): any {
-    this.isWrapped = typeof toBeWrapped === "number"
+    this.isWrapped = typeof toBeWrapped !== "object"
     return this.isWrapped ? {wrap: toBeWrapped} : toBeWrapped
   }
 
@@ -222,7 +225,8 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   public from(to: Input & {offset?: never}): void
   public from(to?: Input & {offset?: never}) {
     if (to !== undefined) {
-      this._keyframes.first = {offset: 0, ...this.parseInAndWrap(to)}
+      this._keyframes.first = this.parseInAndWrap(to)
+      this._keyframes.first.offset = 0
       this.prepInput()
     }
     else return this.parseOutAndUnwrap(this._keyframes.first)
@@ -233,7 +237,8 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   public to(to: Input & {offset?: never}): void
   public to(to?: Input & {offset?: never}) {
     if (to !== undefined) {
-      this._keyframes.last = {offset: 0, ...this.parseInAndWrap(to)}
+      this._keyframes.last = this.parseInAndWrap(to)
+      this._keyframes.last.offset = 1
       this.prepInput()
     }
     else return this.parseOutAndUnwrap(this._keyframes.last)
@@ -247,26 +252,41 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
       if (to.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
       let offset: number
       to.ea((e, i) => {
-        offset = e.offset
-        delete e.offset 
+        let hasOffset = offset !== undefined
+        if (hasOffset) {
+          offset = e.offset
+          delete e.offset 
+        }
+        
         this._keyframes[i] = this.parseInAndWrap(e)
-        e.offset = offset
-        if (offset !== undefined) this._keyframes[i].offset = offset
+        
+        if (hasOffset) {
+          this._keyframes[i].offset = offset
+          e.offset = offset
+        }
         
       })
       this.prepInput()
     }
     else {
-      let keyframes = clone(this._keyframes)
+      let newKeyframes = []
       let offset: number
-      keyframes.ea((e, i) => {
-        offset = e.offset
-        delete e.offset
-        //@ts-ignore
-        keyframes[i] = {offset, ...this.parseOutAndUnwrap(e)}
+      this._keyframes.ea((e, i) => {
+        let hasOffset = offset !== undefined
+        if (hasOffset) {
+          offset = e.offset
+          delete e.offset 
+        }
+        
+        newKeyframes[i] = this.parseOutAndUnwrap(e)
+        
+        if (hasOffset) {
+          this._keyframes[i].offset = offset
+          e.offset = offset
+        }
       })
       //@ts-ignore
-      return keyframes
+      return newKeyframes
     }
   }
 
