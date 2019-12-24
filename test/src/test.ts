@@ -8,20 +8,13 @@ let easeInOut = bez(.42, 0, .58, 1)
 let duration = 1000
 
 
-let interpolater = new TweenObject(
-  true,
-  [
-    {val: 0},
-    {val: 50, offset: .1},
-    {val: 100}
-  ]
-, duration)
+let interpolater = new TweenObject(0, 100, duration)
 
 
 
 setTimeout(() => {
   let last = 0
-  interpolater.onUpdate(({val: e}) => {
+  interpolater.onUpdate((e) => {
     //@ts-ignore
     console.log("update:", e, e - last);
     //@ts-ignore

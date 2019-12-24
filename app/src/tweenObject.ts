@@ -77,7 +77,6 @@ function mergeDefaultOptions(options: Options) {
 type GenericObject = {[prop: string]: any}
 type Keyframes<Interior> = ({offset?: number} & Interior)[]
 type offset = number
-type Frame = GenericObject & {offset?: never}
 
 
 
@@ -120,14 +119,32 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
     if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)
     else {
       this._keyframes = [
-        {offset: 0, ...this.parseIn(from_array)},
-        {offset: 1, ...this.parseIn(to_keyframes as Input)}
+        {offset: 0, ...this.parseInAndWrap(from_array)},
+        {offset: 1, ...this.parseInAndWrap(to_keyframes as Input)}
       ]
       this.prepInput()
     }
   }
 
-  protected abstract parseIn(face: Input): Interior
+  private isWrapped: boolean = false
+  private wrap(toBeWrapped: any): any {
+    this.isWrapped = typeof toBeWrapped === "number"
+    return this.isWrapped ? {wrap: toBeWrapped} : toBeWrapped
+  }
+
+  private unwrap(toBeUnwrapped: any): any{
+    return this.isWrapped ? toBeUnwrapped.wrap : toBeUnwrapped
+  }
+
+  private parseInAndWrap(input: Input): any {
+    return this.wrap(this.parseIn(input))
+  }
+
+  private parseOutAndUnwrap(interior: Interior) {
+    return this.parseOut(this.unwrap(interior))
+  }
+
+  protected abstract parseIn(input: Input): Interior
   protected abstract parseOut(interior: Interior): Output
 
   private lastParsedOutput: Output
@@ -177,7 +194,8 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
       }
 
       // Notify
-      let res = this.parseOut(this.tweeny)
+      debugger
+      let res = this.parseOutAndUnwrap(this.tweeny)
       if (!deepEqual(res, this.lastParsedOutput)) {
         this.updateListeners.ea((f) => {
           f(res)
@@ -205,10 +223,10 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   public from(to: Input & {offset?: never}): void
   public from(to?: Input & {offset?: never}) {
     if (to !== undefined) {
-      this._keyframes.first = {offset: 0, ...this.parseIn(to)}
+      this._keyframes.first = {offset: 0, ...this.parseInAndWrap(to)}
       this.prepInput()
     }
-    else return this.parseOut(this._keyframes.first)
+    else return this.parseOutAndUnwrap(this._keyframes.first)
   }
 
 
@@ -216,10 +234,10 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   public to(to: Input & {offset?: never}): void
   public to(to?: Input & {offset?: never}) {
     if (to !== undefined) {
-      this._keyframes.last = {offset: 0, ...this.parseIn(to)}
+      this._keyframes.last = {offset: 0, ...this.parseInAndWrap(to)}
       this.prepInput()
     }
-    else return this.parseOut(this._keyframes.last)
+    else return this.parseOutAndUnwrap(this._keyframes.last)
   }
 
   public keyframes(): Keyframes<Output>
@@ -231,9 +249,9 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
       let offset: number
       keyframes.ea((e, i) => {
         offset = e.offset
-        delete e.offset
+        delete e.offset 
         //@ts-ignore
-        keyframes[i] = {offset, ...this.parseIn(e)}
+        keyframes[i] = {offset, ...this.parseInAndWrap(e)}
       })
       //@ts-ignore
       this._keyframes = keyframes
@@ -246,7 +264,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
         offset = e.offset
         delete e.offset
         //@ts-ignore
-        keyframes[i] = {offset, ...this.parseOut(e)}
+        keyframes[i] = {offset, ...this.parseOutAndUnwrap(e)}
       })
       //@ts-ignore
       return keyframes
@@ -258,6 +276,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
 
     this.checkInput(this._keyframes)
     this.tweeny = clone(this._keyframes.first)
+    delete this.tweeny.offset
 
     this.tweenInstancesIndex = new Map()
 
