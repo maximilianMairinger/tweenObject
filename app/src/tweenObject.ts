@@ -73,11 +73,15 @@ function mergeDefaultOptions(options: Options) {
 }
 
 
-type GenericObject = {[prop: string]: any}
-type Keyframes<Interior> = {offset?: number, value: Interior}[]
-type offset = number
 
-export abstract class Tween<Face, Interior extends (number | GenericObject) = GenericObject, Input = Face, Output = Face> {
+type GenericObject = {[prop: string]: any}
+type Keyframes<Interior> = ({offset?: number} & Interior)[]
+type offset = number
+type Frame = GenericObject & {offset?: never}
+
+
+
+export abstract class Tween<Input, Interior extends GenericObject = GenericObject, Output = Input> {
   private _keyframes: Keyframes<Interior>
   private tweeny: Interior;
   private tweenInstancesIndex: Map<offset, SimpleTween[]>
@@ -95,8 +99,8 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
 
   constructor(array: true, keyframes: Keyframes<Input>, duration?: number, easing?: (at: number) => number)
   constructor(array: true, keyframes: Keyframes<Input>, options: Options)
-  constructor(from: Input, to: Input, options: Options)
-  constructor(from: Input, to: Input, duration?: number, easing?: (at: number) => number)
+  constructor(from: Input & {offset?: never}, to: Input, options: Options)
+  constructor(from: Input & {offset?: never}, to: Input, duration?: number, easing?: (at: number) => number)
   constructor(from_array: Input | true, to_keyframes: Input | Keyframes<Input>, duration_options?: number | Options, easing?: (at: number) => number) {
     if (typeof duration_options === "object") {
       this.options = mergeDefaultOptions(duration_options)
@@ -116,8 +120,8 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)
     else {
       this._keyframes = [
-        {offset: 0, value: this.parseIn(from_array)},
-        {offset: 1, value: this.parseIn(to_keyframes as Input)}
+        {offset: 0, ...this.parseIn(from_array)},
+        {offset: 1, ...this.parseIn(to_keyframes as Input)}
       ]
       this.prepInput()
     }
@@ -197,25 +201,25 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     this.updateListeners.rmV(ls)
   }
 
-  public from(): Output
-  public from(to: Input): void
-  public from(to?: Input) {
+  public from(): Output & {offset?: never}
+  public from(to: Input & {offset?: never}): void
+  public from(to?: Input & {offset?: never}) {
     if (to !== undefined) {
-      this._keyframes.first = {offset: 0, value: this.parseIn(to)}
+      this._keyframes.first = {offset: 0, ...this.parseIn(to)}
       this.prepInput()
     }
-    else return this.parseOut(this._keyframes.first.value)
+    else return this.parseOut(this._keyframes.first)
   }
 
 
-  public to(): Output
-  public to(to: Input): void
-  public to(to?: Input) {
+  public to(): Output & {offset?: never}
+  public to(to: Input & {offset?: never}): void
+  public to(to?: Input & {offset?: never}) {
     if (to !== undefined) {
-      this._keyframes.last = {offset: 0, value: this.parseIn(to)}
+      this._keyframes.last = {offset: 0, ...this.parseIn(to)}
       this.prepInput()
     }
-    else return this.parseOut(this._keyframes.last.value)
+    else return this.parseOut(this._keyframes.last)
   }
 
   public keyframes(): Keyframes<Output>
@@ -224,9 +228,12 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     if (to !== undefined) {
       let keyframes = clone(to)
       if (keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
+      let offset: number
       keyframes.ea((e, i) => {
+        offset = e.offset
+        delete e.offset
         //@ts-ignore
-        keyframes[i] = {offset: e.offset, value: this.parseIn(e.value)}
+        keyframes[i] = {offset, ...this.parseIn(e)}
       })
       //@ts-ignore
       this._keyframes = keyframes
@@ -234,9 +241,12 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     }
     else {
       let keyframes = clone(this._keyframes)
+      let offset: number
       keyframes.ea((e, i) => {
+        offset = e.offset
+        delete e.offset
         //@ts-ignore
-        keyframes[i] = {offset: e.offset, value: this.parseOut(e.value)}
+        keyframes[i] = {offset, ...this.parseOut(e)}
       })
       //@ts-ignore
       return keyframes
@@ -246,22 +256,13 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   private prepInput() {
     spreadOffset(this._keyframes)
 
-    let interiors = this._keyframes.Inner("value")
-    this.checkInput(interiors)
-    this.tweeny = clone(interiors.first)
-    let typeofTweeny = typeof this.tweeny
+    this.checkInput(this._keyframes)
+    this.tweeny = clone(this._keyframes.first)
 
     this.tweenInstancesIndex = new Map()
 
-    if (typeofTweeny === "object") this.prepTweeny(this.tweeny, this._keyframes)
-    //@ts-ignore
-    else if (typeofTweeny === "number") {
-      for (let i = 0; i < this._keyframes.length - 1; i++) {
-        this.tweenInstancesIndex.set(this._keyframes[i].offset, [new SimpleTween(this._keyframes[i].value as unknown as number, this._keyframes[i+1].value as unknown as number, (e) => {
-          (this.tweeny as unknown as number) = e
-        })])
-      }
-    }
+    this.prepTweeny(this.tweeny, this._keyframes)
+
 
     this.tweenInstancesIndex.set(1, null)
     this.tweenInstancesIndexKeys = [...this.tweenInstancesIndex.keys()]
@@ -271,15 +272,17 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
     let typeofFrom: any
     let typeofFromIsNumber: boolean
     let typeofFromIsObject: boolean
+    const offsetString: "offset" = "offset"
     for (const key in tweeny) {
-      typeofFrom = typeof keyframes.first.value[key]
+      if (key === offsetString) continue
+      typeofFrom = typeof keyframes.first[key]
       typeofFromIsNumber = typeofFrom === "number"
       typeofFromIsObject = typeofFrom === "object"
 
       for (let i = 0; i < keyframes.length - 1; i++) {
         let offset = keyframes[i].offset
-        let from = keyframes[i].value[key]
-        let to = keyframes[i + 1].value[key]
+        let from = keyframes[i][key]
+        let to = keyframes[i + 1][key]
   
 
         if (typeofFromIsNumber) {
@@ -296,9 +299,10 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
       }
 
       if (typeofFromIsObject) {
-        let newKeyframe: Keyframes<Interior> = []
+        //@ts-ignore
+        let newKeyframe: Keyframes<Interior> = keyframes.Inner(key)
         for (let i = 0; i < keyframes.length; i++) {
-          newKeyframe[i] = {value: keyframes[i].value[key], offset: keyframes[i].offset}
+          newKeyframe[i].offset = keyframes[i].offset
         }
         this.prepTweeny(tweeny[key], newKeyframe)
       }
@@ -342,7 +346,7 @@ export abstract class Tween<Face, Interior extends (number | GenericObject) = Ge
   }
 }
 
-export default class TweenObject<Face extends (number | GenericObject) = (number | GenericObject), Interior extends (number | GenericObject) = (number | GenericObject), Input extends (number | GenericObject) = Face, Output extends (number | GenericObject) = Face> extends Tween<Face, Interior, Input, Output> {
+export default class TweenObject<Input, Interior extends GenericObject = GenericObject, Output = Input> extends Tween<Input, Interior, Output> {
   protected parseIn(face: Input): Interior {
     return clone(face) as unknown as Interior
   }
