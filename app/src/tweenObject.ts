@@ -194,7 +194,6 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
       }
 
       // Notify
-      debugger
       let res = this.parseOutAndUnwrap(this.tweeny)
       if (!deepEqual(res, this.lastParsedOutput)) {
         this.updateListeners.ea((f) => {
