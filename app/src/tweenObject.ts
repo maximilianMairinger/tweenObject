@@ -292,7 +292,6 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
     let typeofFromIsObject: boolean
     const offsetString: "offset" = "offset"
     for (const key in tweeny) {
-      if (key === offsetString) continue
       typeofFrom = typeof keyframes.first[key]
       typeofFromIsNumber = typeofFrom === "number"
       typeofFromIsObject = typeofFrom === "object"
