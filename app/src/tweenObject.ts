@@ -243,17 +243,17 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   public keyframes(to: Keyframes<Input>): void
   public keyframes(to?: Keyframes<Input>): Keyframes<Output> | void {
     if (to !== undefined) {
-      let keyframes = clone(to)
-      if (keyframes.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
+      this._keyframes = []
+      if (to.length < 2) throw new TweenError("Invalid keyframes. Must have a minimum length of 2.")
       let offset: number
-      keyframes.ea((e, i) => {
+      to.ea((e, i) => {
         offset = e.offset
         delete e.offset 
-        //@ts-ignore
-        keyframes[i] = {offset, ...this.parseInAndWrap(e)}
+        this._keyframes[i] = this.parseInAndWrap(e)
+        e.offset = offset
+        if (offset !== undefined) this._keyframes[i].offset = offset
+        
       })
-      //@ts-ignore
-      this._keyframes = keyframes
       this.prepInput()
     }
     else {
