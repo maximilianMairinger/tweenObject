@@ -1,6 +1,6 @@
 {
   "name": "tween-object",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Tween any object deeply while disregarding non numeric values",
   "main": "app/dist/tweenObject.js",
   "types": "app/dist/tweenObject.d.ts",
