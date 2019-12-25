@@ -96,18 +96,35 @@ To interpolate over multiple keyframes set the first constructor argument to tru
 ```js
 let multipleKeyframes = true
 let keyframes = [
-  {value: {test: 100}, offset: 0},
-  {value: {test: 250}, offset: .3},
-  {value: {test: 300}},
-  {value: {test: 500}, offset: 1},
+  {prop: 100, offset: 0},
+  {prop: 250, offset: .3},
+  {prop: 300},
+  {prop: 500, offset: 1}
 ]
 
 let tween = new TweenObject(multipleKeyframes, keyframes)
 ```
 
-The keyframes **must** be given in such a fashion: `{value: Input, offset?: number}` where offsets spans between 0 and 1 (in ascending order). The offset property can be ommited resulting in `{value: Input}`. This way the missing offsets get distrubuted programatically.
+The offset property on a keyframes indecates the position in the animation (0 beeing the begin and 1 the end), similar to the [WAAPI](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats) implementation. Offset can be omit as it will be filled by equally distributed values (thus, `0.65` for the above example).
 
-Disregarding if an offset is explicitly given, the value must be wrapped inside an object to clearly distinguish between the offset declaration and to be interpolated values. 
+-----------------
+
+Side Note: Single property keyframes can be given not nested inside a explicit object. This notation (useing wrapped primitives) works as well
+
+```js
+let multipleKeyframes = true
+let specialPropWithOffset = new Number(250)
+specialPropWithOffset.offset = .3
+let keyframes = [
+  100
+  specialPropWithOffset
+  300,
+  500
+]
+
+let tween = new TweenObject(multipleKeyframes, keyframes)
+```
+
 
 ### Extention
 
