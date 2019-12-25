@@ -85,7 +85,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   private tweeny: Interior;
   private tweenInstancesIndex: Map<offset, SimpleTween[]>
 
-  private updateListeners: ((res: Readonly<Output>) => void)[] = []
+  private updateListeners: ((res: Output) => void)[] = []
 
   private startTime: number
   private tweenInstancesIndexKeys: number[]
@@ -151,7 +151,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   protected abstract parseOut(interior: Interior): Output
 
   private lastParsedOutput: Output
-  public update(at?: number): Readonly<Output> {
+  public update(at?: number): Output {
     if (at === undefined) {
       if (this.startTime === undefined) {
         at = 0
@@ -212,12 +212,12 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
 
   
 
-  public onUpdate(ls: (res: Readonly<Output>) => void) {
+  public onUpdate(ls: (res: Output) => void) {
     this.updateListeners.add(ls)
     return ls
   }
 
-  public offUpdate(ls: (res: Readonly<Output>) => void) {
+  public offUpdate(ls: (res: Output) => void) {
     this.updateListeners.rmV(ls)
   }
 
