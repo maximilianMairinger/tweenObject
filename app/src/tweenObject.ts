@@ -48,7 +48,16 @@ export class SimpleTween {
   }
 }
 
-export interface Options {
+
+export interface OptionsA {
+  readonly duration: number
+  readonly easing?: (at: number) => number | Easing
+  readonly iterations?: number
+  readonly fill?: boolean
+}
+
+
+export interface OptionsB {
   readonly start?: number
   readonly end?: number
   readonly easing?: (at: number) => number | Easing
@@ -56,28 +65,43 @@ export interface Options {
   readonly fill?: boolean
 }
 
+
+
+
 interface InternalOptions {
-  readonly start?: number
-  readonly end?: number
-  readonly easing?: (at: number) => number
-  readonly iterations?: number
-  readonly fill?: boolean
+  readonly start: number
+  readonly end: number
+  readonly duration: number
+  readonly easing: (at: number) => number
+  readonly iterations: number
+  readonly fill: boolean
 }
 
-const defaultOptions: Options = {
+const defaultOptions: OptionsA & OptionsB = {
   start: 0,
-  end: 1,
+  end: 1000,
+  duration: 1000,
   easing: a => a,
   iterations: 1,
   fill: true
 }
 
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
 
-function mergeDefaultOptions(options: Options) {
+
+function mergeDefaultOptions(options: OptionsA | OptionsB): InternalOptions {
   for (let key in defaultOptions) {
     if (options[key] === undefined) options[key] = defaultOptions[key]
   }
-  return options
+
+  if ((options as OptionsA).duration !== undefined) (options as Mutable<OptionsB>).end = (options as OptionsA).duration;
+  else (options as Mutable<OptionsA>).duration = (options as OptionsB).end - (options as OptionsB).start;
+
+  if ((options as OptionsA).easing instanceof Easing) (options as Mutable<InternalOptions>).easing =  (options as OptionsA as any).easing.function
+
+  return Object.freeze(options) as InternalOptions
 }
 
 
@@ -101,25 +125,19 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
 
   public readonly options: InternalOptions
 
-  private duration: number
-
 
   constructor(array: true, keyframes: Keyframes<Input>, duration?: number, easing?: (at: number) => number | Easing)
-  constructor(array: true, keyframes: Keyframes<Input>, options: Options)
-  constructor(from: Input & {offset?: never}, to: Input, options: Options)
+  constructor(array: true, keyframes: Keyframes<Input>, options: OptionsA | OptionsB)
+  constructor(from: Input & {offset?: never}, to: Input, options: OptionsA | OptionsB)
   constructor(from: Input & {offset?: never}, to: Input, duration?: number, easing?: (at: number) => number | Easing)
-  constructor(from_array: Input | true, to_keyframes: Input | Keyframes<Input>, duration_options?: number | Options, easing?: (at: number) => number | Easing) {
+  constructor(from_array: Input | true, to_keyframes: Input | Keyframes<Input>, duration_options?: number | OptionsA | OptionsB, easing?: (at: number) => number | Easing) {
     if (typeof duration_options === "object") this.options = mergeDefaultOptions(duration_options) as any
     else if (duration_options !== undefined) this.options = mergeDefaultOptions({
       end: duration_options,
       easing,
     }) as any
     else this.options = mergeDefaultOptions({}) as any
-    //@ts-ignore
-    if (this.options.easing instanceof Easing) this.options.easing = this.options.easing.function
-    this.options = Object.freeze(this.options)
 
-    this.duration = this.options.end - this.options.start
 
     if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)
     else {
@@ -169,18 +187,18 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
 
     let inIteration = Math.floor(at / this.options.end) + 1
     at = at - inIteration * this.options.start
-    at = at - (inIteration - 1) * this.duration
+    at = at - (inIteration - 1) * this.options.duration
     
 
       
     if (inIteration > this.options.iterations) {
-      if (this.options.fill) at = this.duration
+      if (this.options.fill) at = this.options.duration
       else at = 0
     }
     else if (at < 0) at = 0
 
 
-    at = at / this.duration
+    at = at / this.options.duration
     at = this.options.easing(at)
 
 

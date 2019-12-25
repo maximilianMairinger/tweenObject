@@ -8,7 +8,11 @@ let easeInOut = bez(.42, 0, .58, 1)
 let duration = 1000
 
 
-let interpolater = new TweenObject("was", "was", duration)
+debugger
+let interpolater = new TweenObject(0, 100, {
+  duration: 1000,
+
+})
 
 
 
