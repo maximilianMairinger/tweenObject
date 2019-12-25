@@ -77,7 +77,7 @@ function mergeDefaultOptions(options: Options) {
   for (let key in defaultOptions) {
     if (options[key] === undefined) options[key] = defaultOptions[key]
   }
-  return Object.freeze(options)
+  return options
 }
 
 
@@ -117,6 +117,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
     else this.options = mergeDefaultOptions({}) as any
     //@ts-ignore
     if (this.options.easing instanceof Easing) this.options.easing = this.options.easing.function
+    this.options = Object.freeze(this.options)
 
     this.duration = this.options.end - this.options.start
 
