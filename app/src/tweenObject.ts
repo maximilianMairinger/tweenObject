@@ -2,10 +2,10 @@ const now = performance.now.bind(performance)
 import clone from "clone"
 import spreadOffset from "spread-offset"
 import { deepEqual } from "fast-equals"
+import Easin from "waapi-easing"
 require("xrray")(Array)
 
-
-
+export const Easing = Easin
 
 export class TweenError extends Error {
   constructor(msg: string = "Unknown") {
@@ -51,6 +51,14 @@ export class SimpleTween {
 export interface Options {
   readonly start?: number
   readonly end?: number
+  readonly easing?: (at: number) => number | Easing
+  readonly iterations?: number
+  readonly fill?: boolean
+}
+
+interface InternalOptions {
+  readonly start?: number
+  readonly end?: number
   readonly easing?: (at: number) => number
   readonly iterations?: number
   readonly fill?: boolean
@@ -91,28 +99,24 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   private tweenInstancesIndexKeys: number[]
   private lastUpdateAt: number = null
 
-  public readonly options: Options
+  public readonly options: InternalOptions
 
   private duration: number
 
 
-  constructor(array: true, keyframes: Keyframes<Input>, duration?: number, easing?: (at: number) => number)
+  constructor(array: true, keyframes: Keyframes<Input>, duration?: number, easing?: (at: number) => number | Easing)
   constructor(array: true, keyframes: Keyframes<Input>, options: Options)
   constructor(from: Input & {offset?: never}, to: Input, options: Options)
-  constructor(from: Input & {offset?: never}, to: Input, duration?: number, easing?: (at: number) => number)
-  constructor(from_array: Input | true, to_keyframes: Input | Keyframes<Input>, duration_options?: number | Options, easing?: (at: number) => number) {
-    if (typeof duration_options === "object") {
-      this.options = mergeDefaultOptions(duration_options)
-    }
-    else if (duration_options !== undefined) {
-      this.options = mergeDefaultOptions({
-        end: duration_options,
-        easing,
-      })
-    }
-    else {
-      this.options = mergeDefaultOptions({})
-    }
+  constructor(from: Input & {offset?: never}, to: Input, duration?: number, easing?: (at: number) => number | Easing)
+  constructor(from_array: Input | true, to_keyframes: Input | Keyframes<Input>, duration_options?: number | Options, easing?: (at: number) => number | Easing) {
+    if (typeof duration_options === "object") this.options = mergeDefaultOptions(duration_options) as any
+    else if (duration_options !== undefined) this.options = mergeDefaultOptions({
+      end: duration_options,
+      easing,
+    }) as any
+    else this.options = mergeDefaultOptions({}) as any
+    //@ts-ignore
+    if (this.options.easing instanceof Easing) this.options.easing = this.options.easing.function
 
     this.duration = this.options.end - this.options.start
 
