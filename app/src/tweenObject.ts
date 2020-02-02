@@ -3,7 +3,8 @@ import clone from "clone"
 import spreadOffset from "spread-offset"
 import { deepEqual } from "fast-equals"
 import Easin from "waapi-easing"
-require("xrray")(Array)
+import Xrray from "xrray"
+Xrray(Array)
 
 export const Easing = Easin
 
