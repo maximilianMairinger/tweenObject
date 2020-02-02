@@ -50,6 +50,6 @@
     "fast-equals": "^2.0.0",
     "spread-offset": "^1.0.0",
     "waapi-easing": "^1.0.0",
-    "xrray": "^4.6.3"
+    "xrray": "^4.6.4"
   }
 }
