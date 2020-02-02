@@ -66,6 +66,7 @@ export interface OptionsB {
   readonly fill?: boolean
 }
 
+export type Options = OptionsA | OptionsB
 
 
 
