@@ -2,11 +2,11 @@ const now = performance.now.bind(performance)
 import clone from "tiny-clone"
 import spreadOffset from "spread-offset"
 import { deepEqual } from "fast-equals"
-import Easin from "waapi-easing"
+export * from "waapi-easing"
+import Easing from "waapi-easing"
 import Xrray from "xrray"
 Xrray(Array)
 
-export const Easing = Easin
 
 export class TweenError extends Error {
   constructor(msg: string = "Unknown") {
