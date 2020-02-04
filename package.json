@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/maximilianMairinger/tweenObject#readme",
   "devDependencies": {
-    "@types/clone": "^0.1.30",
     "@types/node": "^12.12.21",
     "abs-svg-path": "^0.1.1",
     "animation-frame-delta": "^2.4.1",
@@ -45,9 +44,9 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "clone": "^2.1.2",
     "fast-equals": "^2.0.0",
     "spread-offset": "^1.0.0",
+    "tiny-clone": "^1.0.0",
     "waapi-easing": "^1.0.0",
     "xrray": "^4.6.4"
   }

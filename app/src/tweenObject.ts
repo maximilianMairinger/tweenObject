@@ -1,5 +1,5 @@
 const now = performance.now.bind(performance)
-import clone from "clone"
+import clone from "tiny-clone"
 import spreadOffset from "spread-offset"
 import { deepEqual } from "fast-equals"
 import Easin from "waapi-easing"
