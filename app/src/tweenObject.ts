@@ -1,5 +1,5 @@
 const now = performance.now.bind(performance)
-import clone from "tiny-clone"
+import clone from "fast-copy"
 import spreadOffset from "spread-offset"
 import { deepEqual } from "fast-equals"
 import Xrray from "xrray"
@@ -319,7 +319,7 @@ export abstract class Tween<Input = unknown, Interior extends GenericObject = Ge
   private prepInput() {
     spreadOffset(this._keyframes)
 
-    this.checkInput(this._keyframes)
+    // this.checkInput(this._keyframes)
     this.tweeny = clone(this._keyframes.first)
     delete this.tweeny.offset
 
@@ -336,7 +336,7 @@ export abstract class Tween<Input = unknown, Interior extends GenericObject = Ge
     let typeofFrom: any
     let typeofFromIsNumber: boolean
     let typeofFromIsObject: boolean
-    const offsetString: "offset" = "offset"
+
     for (const key in tweeny) {
       typeofFrom = typeof keyframes.first[key]
       typeofFromIsNumber = typeofFrom === "number"
@@ -373,40 +373,40 @@ export abstract class Tween<Input = unknown, Interior extends GenericObject = Ge
     return tweeny
   }
 
-  private checkInput(interiors: Interior[]) {
-    let type = typeof interiors.first
-    for (let i = 1; i < interiors.length; i++) {
-      if (type !== typeof interiors[i]) throw new TweenCheckError("Types are not equal at index " + i + ".")
-    }
-    if (type === "object") {
-      let keys = Object.keys(interiors.first)
-      for (let i = 1; i < interiors.length; i++) {
-        let me = Object.keys(interiors[i])
-        if (keys.length !== me.length) throw new TweenCheckError("Length of keys are not equal at index " + i + ".")
-        if (!me.contains(...keys)) throw new TweenCheckError("Keys do not match at index " + i + ".")
-      }
+  // private checkInput(interiors: Interior[]) {
+  //   let type = typeof interiors.first
+  //   for (let i = 1; i < interiors.length; i++) {
+  //     if (type !== typeof interiors[i]) throw new TweenCheckError("Types are not equal at index " + i + ".")
+  //   }
+  //   if (type === "object") {
+  //     let keys = Object.keys(interiors.first)
+  //     for (let i = 1; i < interiors.length; i++) {
+  //       let me = Object.keys(interiors[i])
+  //       if (keys.length !== me.length) throw new TweenCheckError("Length of keys are not equal at index " + i + ".")
+  //       if (!me.contains(...keys)) throw new TweenCheckError("Keys do not match at index " + i + ".")
+  //     }
       
-      for (let key of keys) {
-        try {
-          //@ts-ignore
-          this.checkInput(interiors.Inner(key))
-        }
-        catch(e) {
-          if (e instanceof TweenCheckError) {
-            e.addStep(key)
-          }
+  //     for (let key of keys) {
+  //       try {
+  //         //@ts-ignore
+  //         this.checkInput(interiors.Inner(key))
+  //       }
+  //       catch(e) {
+  //         if (e instanceof TweenCheckError) {
+  //           e.addStep(key)
+  //         }
 
-          throw e
-        }
-      }
-    }
-    else if (type !== "number") {
-      let val = interiors.first
-      for (let i = 1; i < interiors.length; i++) {
-        if (val !== interiors[i]) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given all given keyframes. Error eccured at index " + i + ".")
-      }
-    }
-  }
+  //         throw e
+  //       }
+  //     }
+  //   }
+  //   else if (type !== "number") {
+  //     let val = interiors.first
+  //     for (let i = 1; i < interiors.length; i++) {
+  //       if (val !== interiors[i]) throw new TweenCheckError("Unable to interpolate between none numeric values. When using such, make sure the values are the same at given all given keyframes. Error eccured at index " + i + ".")
+  //     }
+  //   }
+  // }
 }
 
 export default class TweenObject<Input = unknown, Interior extends GenericObject = GenericObject, Output = Input> extends Tween<Input, Interior, Output> {
