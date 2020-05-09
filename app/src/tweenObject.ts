@@ -94,16 +94,18 @@ type Mutable<T> = {
 
 
 function mergeDefaultOptions(options: OptionsA | OptionsB): InternalOptions {
+  //@ts-ignore
+  let hasDuration = options.duration !== undefined
   for (let key in defaultOptions) {
     if (options[key] === undefined) options[key] = defaultOptions[key]
   }
 
-  if ((options as OptionsA).duration !== undefined) (options as Mutable<OptionsB>).end = (options as OptionsA).duration;
+  if (hasDuration) (options as Mutable<OptionsB>).end = (options as OptionsA).duration;
   else (options as Mutable<OptionsA>).duration = (options as OptionsB).end - (options as OptionsB).start;
 
-  if ((options as OptionsA).easing instanceof Easing) (options as Mutable<InternalOptions>).easing =  (options as OptionsA as any).easing.function
+  if ((options as OptionsA).easing instanceof Easing) (options as Mutable<InternalOptions>).easing = (options as OptionsA as any).easing.function
 
-  return Object.freeze(options) as InternalOptions
+  return options as InternalOptions
 }
 
 
@@ -125,7 +127,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   private tweenInstancesIndexKeys: number[]
   private lastUpdateAt: number = null
 
-  public readonly options: InternalOptions
+  public readonly options: Readonly<InternalOptions>
 
 
   constructor(array: true, keyframes: Keyframes<Input>, duration?: number, easing?: (at: number) => number | Easing)
@@ -138,7 +140,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
       end: duration_options,
       easing,
     }) as any
-    else this.options = mergeDefaultOptions({}) as any
+    else this.options = defaultOptions as any
 
 
     if (from_array === true) this.keyframes(to_keyframes as Keyframes<Input>)

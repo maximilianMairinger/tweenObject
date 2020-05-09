@@ -5,30 +5,17 @@ import animationFrameDelta from "animation-frame-delta"
 let easeInOut = bez(.42, 0, .58, 1)
 
 
-let duration = 1000
+let duration = 300
 
 
-debugger
-let interpolater = new TweenObject(0, 100, {
-  duration: 1000,
-
-})
-
-
+let tween = new TweenObject(0, 100, duration)
+tween.onUpdate(console.log)
 
 setTimeout(() => {
-  let last = 0
-  interpolater.onUpdate((e) => {
-    //@ts-ignore
-    console.log("update:", e, e - last);
-    //@ts-ignore
-    //if (Math.abs(e - last) > 10) debugger
-    last = e as unknown as number
-  })
+  animationFrameDelta(tween.update.bind(tween), duration)
 
+}, 1000)
 
-  animationFrameDelta(interpolater.update.bind(interpolater), duration)
-}, 200)
 
 
 
