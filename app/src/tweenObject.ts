@@ -2,8 +2,6 @@ const now = performance.now.bind(performance)
 import clone from "tiny-clone"
 import spreadOffset from "spread-offset"
 import { deepEqual } from "fast-equals"
-export * from "waapi-easing"
-import Easing from "waapi-easing"
 import Xrray from "xrray"
 Xrray(Array)
 
@@ -49,6 +47,7 @@ export class SimpleTween {
   }
 }
 
+type Easing = { function: (at: number) => number }
 
 export interface OptionsA {
   readonly duration: number
@@ -90,7 +89,7 @@ const defaultOptions: OptionsA & OptionsB = {
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P];
-};
+}
 
 
 function mergeDefaultOptions(options: OptionsA | OptionsB): InternalOptions {
@@ -103,7 +102,7 @@ function mergeDefaultOptions(options: OptionsA | OptionsB): InternalOptions {
   if (hasDuration) (options as Mutable<OptionsB>).end = (options as OptionsA).duration;
   else (options as Mutable<OptionsA>).duration = (options as OptionsB).end - (options as OptionsB).start;
 
-  if ((options as OptionsA).easing instanceof Easing) (options as Mutable<InternalOptions>).easing = (options as OptionsA as any).easing.function
+  if ((options as any).easing.function !== undefined) (options as Mutable<InternalOptions>).easing = (options as OptionsA as any).easing.function
 
   return options as InternalOptions
 }
