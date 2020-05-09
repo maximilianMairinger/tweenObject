@@ -115,7 +115,7 @@ type offset = number
 
 
 
-export abstract class Tween<Input, Interior extends GenericObject = GenericObject, Output = Input> {
+export abstract class Tween<Input = unknown, Interior extends GenericObject = GenericObject, Output = Input> {
   private _keyframes: Keyframes<Interior>
   private tweeny: Interior;
   private tweenInstancesIndex: Map<offset, SimpleTween[]>
@@ -409,7 +409,7 @@ export abstract class Tween<Input, Interior extends GenericObject = GenericObjec
   }
 }
 
-export default class TweenObject<Input, Interior extends GenericObject = GenericObject, Output = Input> extends Tween<Input, Interior, Output> {
+export default class TweenObject<Input = unknown, Interior extends GenericObject = GenericObject, Output = Input> extends Tween<Input, Interior, Output> {
   protected parseIn(face: Input): Interior {
     return clone(face) as unknown as Interior
   }
